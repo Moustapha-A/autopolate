@@ -187,5 +187,6 @@ interpolatedTemp= autopolate(dataframe = CNBC,
 ```
 
 ```{r}
-plot(interpolatedTemp$Time,interpolatedTemp$Temp)
+plot(interpolatedTemp$Time,interpolatedTemp$Temp, main = "Interpolated Data 30s rate")
+plot(as.POSIXct(CNBC$Time,format="%d/%m/%Y %H:%M:%S"),CNBC$Temp, main = "Initial Data 60s rate")
 ```

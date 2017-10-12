@@ -110,7 +110,7 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
   }
 
   if(isTRUE(plot)){
-    plot(x,y,col=rgb(0,0.1,1,0.8))
+    plot(x,y,col=rgb(0,0.1,1,0.8) , main = "Initial Vs Interpolated", xlab = timeCol, ylab = valueCol)
     for(fnct in fncts){
       denseInterval = seq(head(fnct$argvals,1),tail(fnct$argvals,1),10)
       lines(denseInterval,fda::eval.fd(denseInterval,fnct$fd))
