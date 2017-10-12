@@ -35,16 +35,36 @@ print(head(CNBC,10))
 ```
 
 The current data rate is 1 min we want to transform it into 30 seconds and for only the tempreture attribute
-This might take time as it is interpolationg a set of 5555 values (I will work on performance if I had time)
 
 ```{r}
 interpolatedTemp= autopolate(dataframe = CNBC,
                   timeCol = 'Time',
                   timeFrmt = '%d/%m/%Y %H:%M:%S',
                   valueCol = 'Temp',
-                  breaksGen = 'gap-aware',
                   rate = 60,
                   targetRate = 30)
+```
+
+An error was fired somthing like :  the leading minor of order \$number\$ is not positive definite
+That is because the dataset contains a wide gap between certain values (rows 4997-4998): 
+
+```{r}
+print(CNBC[4992:5002])
+```
+
+You can see that between 05/06/2017 20:37:00 and 05/06/2017 23:09:00 there is a large number of missing records
+When this is the case you should add the argument *breaksGen = 'gap-aware'* Like in the following code.
+Interpolation might take time as it is interpolationg a set of 5555 values (I will work on performance if I had time)
+
+```{r}
+interpolatedTemp= autopolate(dataframe = CNBC, ## The data set
+                  timeCol = 'Time', ## The date data column name
+                  timeFrmt = '%d/%m/%Y %H:%M:%S', ## The date data format
+                  valueCol = 'Temp', ## The name of the data column to be interpolated
+                  breaksGen = 'gap-aware', ## Added to deal with wide data gaps
+                  rate = 60, ## The current data rate
+                  targetRate = 30 # The targeted data rate
+                  ) 
 ```
 
 The first rows of the interpolated tempreture we can see the rate in the Time attribute
@@ -53,8 +73,119 @@ The first rows of the interpolated tempreture we can see the rate in the Time at
 print(head(interpolatedTemp,10))
 ```
 
+Usually one should check the interpolation quality to do that one can add *(plot = TRUE)* and *(RMSE = TRUE)*.
+Plot shows the initial data as points an the interpolated data as a black curve. ( I might add interactive plots if I had time )
+RMSE prints in the console the Root Mean Squared Error $\sqrt{\sum_{i=0}^{i=n}{\frac{(\hat{y_i} - yi)^2}{n}}} $ The less the RMSE
+is the strictier the more are fitted the interpolated curves.
+
+```{r}
+interpolatedTemp= autopolate(dataframe = CNBC,
+                  timeCol = 'Time', 
+                  timeFrmt = '%d/%m/%Y %H:%M:%S',
+                  valueCol = 'Temp', 
+                  breaksGen = 'gap-aware',
+                  rate = 60,
+                  targetRate = 30,
+                  plot= TRUE,
+                  RMSE = TRUE
+                  ) 
+```
+
+Sometimes we want the interpolated data to be yet more smoother. To do that we can add the *smoothingAgent* argument. The larger the smoothing data the smoother the interpolation howerver this will trade off with lesser fittingto data.
+
+```{r}
+interpolatedTemp= autopolate(dataframe = CNBC,
+                  timeCol = 'Time', 
+                  timeFrmt = '%d/%m/%Y %H:%M:%S',
+                  valueCol = 'Temp', 
+                  breaksGen = 'gap-aware',
+                  rate = 60,
+                  targetRate = 30,
+                  smoothingAgent = 0.5,
+                  plot= TRUE,
+                  RMSE = TRUE
+                  ) 
+```
+
+To achieve more fitting to data you should add more basis functions by using the argument *basisRatio* is should be less than one and more than zero. The default value used in case you didn't add it is 0.1.
+
+```{r}
+interpolatedTemp= autopolate(dataframe = CNBC,
+                  timeCol = 'Time', 
+                  timeFrmt = '%d/%m/%Y %H:%M:%S',
+                  valueCol = 'Temp', 
+                  breaksGen = 'gap-aware',
+                  rate = 60,
+                  targetRate = 30,
+                  basisRatio = 0.4,
+                  smoothingAgent = 0.5,
+                  plot= TRUE,
+                  RMSE = TRUE
+                  ) 
+```
+
+ You could notice that increasing the basis ratio will take so much to execute inour case it is 0.4 and the data set length is 5555 which means we are using 5555\*0.4= 2222 basis function. This lead to complex computations such as 5555x2222 matrix multiplication. In this case it might be better to segment the datasets into multiple segments and interpolate each. This can be done using the *segmentSize* argument where you specify the size of the segment. It should be less the length of the entire set.
+ 
+```{r}
+interpolatedTemp= autopolate(dataframe = CNBC,
+                  timeCol = 'Time', 
+                  timeFrmt = '%d/%m/%Y %H:%M:%S',
+                  valueCol = 'Temp', 
+                  breaksGen = 'gap-aware',
+                  rate = 60,
+                  targetRate = 30,
+                  segmentSize = 1000,
+                  basisRatio = 0.4,
+                  smoothingAgent = 0.5,
+                  plot= TRUE,
+                  RMSE = TRUE
+                  ) 
+```
+
+Notice that in Tuesday the fitted curve doesn't act properly and thats again because of the missing gap ( If I had time I might work on that). However if you are interested in preserving the gaps i.e you don't want to interpolate across gaps you can use the *missingIntervalSize* argument. The argument specifies the size of gaps where the interpolation shouldn't be done across them. If 2 records are missing you might want to interpolate them but if more than 10 you might wont want to interpolate. If you want to preserve the entire record gaps You should put the argument equal to the current data rate in seconds.
+
+Without missingIntervalSize:
+
+```{r}
+interpolatedTemp= autopolate(dataframe = CNBC,
+                  timeCol = 'Time', 
+                  timeFrmt = '%d/%m/%Y %H:%M:%S',
+                  valueCol = 'Temp', 
+                  breaksGen = 'gap-aware',
+                  rate = 60,
+                  targetRate = 30,
+                  segmentSize = 1000,
+                  basisRatio = 0.4,
+                  smoothingAgent = 0.5,
+                  plot= TRUE,
+                  RMSE = TRUE
+                  ) 
+```
+
+```{r}
+plot(interpolatedTemp$Time,interpolatedTemp$Temp)
+```
 
 
+With missingIntervalSize:
 
+```{r}
+interpolatedTemp= autopolate(dataframe = CNBC,
+                  timeCol = 'Time', 
+                  timeFrmt = '%d/%m/%Y %H:%M:%S',
+                  valueCol = 'Temp', 
+                  breaksGen = 'gap-aware',
+                  rate = 60,
+                  missingIntervalSize = 60*3,
+                  targetRate = 30,
+                  segmentSize = 1000,
+                  basisRatio = 0.4,
+                  smoothingAgent = 0.5,
+                  plot= TRUE,
+                  RMSE = TRUE
+                  ) 
+```
 
-
+```{r}
+plot(interpolatedTemp$Time,interpolatedTemp$Temp)
+```
