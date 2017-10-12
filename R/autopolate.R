@@ -8,7 +8,8 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
   if( length(segmentSize) >= length(dataframe) ) stop("segment size should be smaller than dataframe lenght")
   #todo Validate input
 
-  dt = data.table::data.table(dataframe[,c(timeCol,valueCol)])
+  dataframe = data.table::data.table(dataframe)
+  dt = data.table::data.table(dataframe[,c(timeCol,valueCol),with=FALSE])
   dt = na.omit(dt)
 
   x = strptime( dt[[timeCol]], timeFrmt )
