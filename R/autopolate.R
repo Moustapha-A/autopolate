@@ -96,6 +96,7 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
   }
 
   newDt = data.table::data.table(newX,newY)
+  names(newDt) = c(timeCol,valueCol)
 
   if( !is.null(missingIntervalSize) ){
   missing = missingIntervals(x,missingIntervalSize)

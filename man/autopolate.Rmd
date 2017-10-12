@@ -35,12 +35,14 @@ print(head(CNBC,10))
 ```
 
 The current data rate is 1 min we want to transform it into 30 seconds and for only the tempreture attribute
+This might take time as it is interpolationg a set of 5555 values (I will work on performance if I had time)
 
 ```{r}
-interpolatedTemp= autopolate(dataframe = as.data.frame(test),
+interpolatedTemp= autopolate(dataframe = CNBC,
                   timeCol = 'Time',
                   timeFrmt = '%d/%m/%Y %H:%M:%S',
-                  valueCol = 'NO2',
+                  valueCol = 'Temp',
+                  breaksGen = 'gap-aware',
                   rate = 60,
                   targetRate = 30)
 ```
