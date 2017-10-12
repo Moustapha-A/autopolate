@@ -25,13 +25,13 @@ library(autopolate)
 We read some data, CNBC is an example data included in this package you must load your own data frame here
 
 ```{r}
-df = data(CNBC)
+data(CNBC)
 ```
 
 The first rows of the data
 
 ```{r}
-print(head(df,10))
+print(head(CNBC,10))
 ```
 
 The current data rate is 1 min we want to transform it into 30 seconds and for only the tempreture attribute
@@ -48,8 +48,9 @@ interpolatedTemp= autopolate(dataframe = as.data.frame(test),
 The first rows of the interpolated tempreture we can see the rate in the Time attribute
 
 ```{r}
-
+print(head(interpolatedTemp,10))
 ```
+
 
 
 
