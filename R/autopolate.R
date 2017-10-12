@@ -176,7 +176,7 @@ gapsBreaks = function(x, basisRatio, rate ){
   #breaks = seq(head(x,1),tail(x,1),(tail(x,1)-head(x,1))/(as.double(tail(x,1)-head(x,1),units = 'secs')*basisRatio))
   breaks = seq(head(x,1),tail(x,1),length.out = length(x)*basisRatio )
   for(interval in missing){
-    breaks = breaks[breaks<=interval[1] | breaks>=interval[2] ]
+    breaks = c( breaks[breaks<=interval[1]], interval[1], interval[2], breaks[breaks>=interval[2]])
   }
   return(breaks)
 }
