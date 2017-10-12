@@ -1,8 +1,9 @@
 devtools::use_package("fda")
 devtools::use_package("data.table")
+devtools::use_package("plotly","Suggests")
 .datatable.aware=TRUE
 
-autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal", segmentSize= NULL, targetRate, basisRatio=0.1, smoothingAgent=0, missingIntervalSize=NULL, plot=FALSE, basis="spline",RMSE=FALSE, rate=60){
+autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal", segmentSize= NULL, targetRate, basisRatio=0.1, smoothingAgent=0, missingIntervalSize=NULL, plot=FALSE, interactive=FALSE, basis="spline",RMSE=FALSE, rate=60){
 
   #todo Validate input
   if( length(segmentSize) >= length(dataframe) ) stop("segment size should be smaller than dataframe lenght")
@@ -112,10 +113,20 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
   }
 
   if(isTRUE(plot)){
-    plot(x,y,col=rgb(0,0.1,1,0.8) , main = "Initial Vs Interpolated", xlab = timeCol, ylab = valueCol)
-    for(fnct in fncts){
-      denseInterval = seq(head(fnct$argvals,1),tail(fnct$argvals,1),10)
-      lines(denseInterval,fda::eval.fd(denseInterval,fnct$fd))
+    if(isTRUE(interactive)){
+      if (!requireNamespace("plotly", quietly = TRUE)) {stop("plotly needed for interactive plotting to work. Please install it.", call. = FALSE)}
+      plotly::plot_ly(x=x,y=y,color = rgb(0,0.2,1,0.8), type='scatter', mode='line')
+      for(fnct in fncts){
+        denseInterval = seq(head(fnct$argvals,1),tail(fnct$argvals,1),10)
+        plotly::add_lines(x=denseInterval,y=fda::eval.fd(denseInterval,fnct$fd))
+      }
+    }
+    else{
+      plot(x,y,col=rgb(0,0.1,1,0.8) , main = "Initial Vs Interpolated", xlab = timeCol, ylab = valueCol)
+      for(fnct in fncts){
+        denseInterval = seq(head(fnct$argvals,1),tail(fnct$argvals,1),10)
+        lines(denseInterval,fda::eval.fd(denseInterval,fnct$fd))
+      }
     }
   }
 
