@@ -1,0 +1,43 @@
+---
+title: "autopolate Notebook"
+output: html_notebook
+---
+
+How to use autopolate package : 
+
+First we intall the package from github using devtools::install_github :
+
+```{r}
+# First we make sure that devtools is installed on your R envirnoment
+if (!require(devtools)) {
+  install.packages('devtools')
+}  
+# Then we can install my script by running the following command
+devtools::install_github('Moustapha-A/autopolate')
+```
+
+Then we load the library as any other library
+```{r}
+library(autopolate)
+```
+
+
+
+test = data.table::fread("/home/qpc/Desktop/CNBC.csv")
+save(test, file="data/CNBC.RData")
+
+w = autopolate(dataframe = as.data.frame(test),
+           timeCol = 'Time',
+           timeFrmt = '%d/%m/%Y %H:%M:%S',
+           timeRate = 30,
+           breaksGen = 'gap-aware',
+           basisRatio = 0.3,
+           segmentSize = 500,
+           RMSE = TRUE,
+           smoothingAgent = 0.4,
+           missingIntervalSize = 60*5,
+           plot=TRUE,
+           valueCol = 'NO2')
+
+
+

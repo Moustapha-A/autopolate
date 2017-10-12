@@ -177,18 +177,4 @@ gapsBreaks = function(x, basisRatio, rate ){
   return(breaks)
 }
 
-test = data.table::fread("/home/qpc/Desktop/CNBC.csv")
-
-w = autopolate(dataframe = as.data.frame(test),
-           timeCol = 'Time',
-           timeFrmt = '%d/%m/%Y %H:%M:%S',
-           timeRate = 30,
-           breaksGen = 'gap-aware',
-           basisRatio = 0.3,
-           segmentSize = 500,
-           RMSE = TRUE,
-           smoothingAgent = 0.4,
-           missingIntervalSize = 60*5,
-           plot=TRUE,
-           valueCol = 'NO2')
 
