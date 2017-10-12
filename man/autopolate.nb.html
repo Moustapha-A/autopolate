@@ -194,11 +194,43 @@ devtools::install_github('Moustapha-A/autopolate')</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>test = data.table::fread(“/home/qpc/Desktop/CNBC.csv”) save(test, file=“data/CNBC.RData”)</p>
-<p>w = autopolate(dataframe = as.data.frame(test), timeCol = ‘Time’, timeFrmt = ‘%d/%m/%Y %H:%M:%S’, timeRate = 30, breaksGen = ‘gap-aware’, basisRatio = 0.3, segmentSize = 500, RMSE = TRUE, smoothingAgent = 0.4, missingIntervalSize = 60*5, plot=TRUE, valueCol = ‘NO2’)</p>
+<p>We read some data, CNBC is an example data included in this package you must load your own data frame here</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGYgPSBkYXRhKENOQkMpXG5gYGAifQ== -->
+<pre class="r"><code>df = data(CNBC)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The first rows of the data</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQoaGVhZChkZiwxMCkpXG5gYGAifQ== -->
+<pre class="r"><code>print(head(df,10))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The current data rate is 1 min we want to transform it into 30 seconds and for only the tempreture attribute</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaW50ZXJwb2xhdGVkVGVtcD0gYXV0b3BvbGF0ZShkYXRhZnJhbWUgPSBhcy5kYXRhLmZyYW1lKHRlc3QpLFxuICAgICAgICAgICAgICAgICAgdGltZUNvbCA9ICdUaW1lJyxcbiAgICAgICAgICAgICAgICAgIHRpbWVGcm10ID0gJyVkLyVtLyVZICVIOiVNOiVTJyxcbiAgICAgICAgICAgICAgICAgIHZhbHVlQ29sID0gJ05PMicsXG4gICAgICAgICAgICAgICAgICByYXRlID0gNjAsXG4gICAgICAgICAgICAgICAgICB0YXJnZXRSYXRlID0gMzApXG5gYGAifQ== -->
+<pre class="r"><code>interpolatedTemp= autopolate(dataframe = as.data.frame(test),
+                  timeCol = 'Time',
+                  timeFrmt = '%d/%m/%Y %H:%M:%S',
+                  valueCol = 'NO2',
+                  rate = 60,
+                  targetRate = 30)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The first rows of the interpolated tempreture we can see the rate in the Time attribute</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiYXV0b3BvbGF0ZSBOb3RlYm9vayIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKSG93IHRvIHVzZSBhdXRvcG9sYXRlIHBhY2thZ2UgOiAKCkZpcnN0IHdlIGludGFsbCB0aGUgcGFja2FnZSBmcm9tIGdpdGh1YiB1c2luZyBkZXZ0b29sczo6aW5zdGFsbF9naXRodWIgOgoKYGBge3J9CiMgRmlyc3Qgd2UgbWFrZSBzdXJlIHRoYXQgZGV2dG9vbHMgaXMgaW5zdGFsbGVkIG9uIHlvdXIgUiBlbnZpcm5vbWVudAppZiAoIXJlcXVpcmUoZGV2dG9vbHMpKSB7CiAgaW5zdGFsbC5wYWNrYWdlcygnZGV2dG9vbHMnKQp9ICAKIyBUaGVuIHdlIGNhbiBpbnN0YWxsIG15IHNjcmlwdCBieSBydW5uaW5nIHRoZSBmb2xsb3dpbmcgY29tbWFuZApkZXZ0b29sczo6aW5zdGFsbF9naXRodWIoJ01vdXN0YXBoYS1BL2F1dG9wb2xhdGUnKQpgYGAKClRoZW4gd2UgbG9hZCB0aGUgbGlicmFyeSBhcyBhbnkgb3RoZXIgbGlicmFyeQpgYGB7cn0KbGlicmFyeShhdXRvcG9sYXRlKQpgYGAKCgoKdGVzdCA9IGRhdGEudGFibGU6OmZyZWFkKCIvaG9tZS9xcGMvRGVza3RvcC9DTkJDLmNzdiIpCnNhdmUodGVzdCwgZmlsZT0iZGF0YS9DTkJDLlJEYXRhIikKCncgPSBhdXRvcG9sYXRlKGRhdGFmcmFtZSA9IGFzLmRhdGEuZnJhbWUodGVzdCksCiAgICAgICAgICAgdGltZUNvbCA9ICdUaW1lJywKICAgICAgICAgICB0aW1lRnJtdCA9ICclZC8lbS8lWSAlSDolTTolUycsCiAgICAgICAgICAgdGltZVJhdGUgPSAzMCwKICAgICAgICAgICBicmVha3NHZW4gPSAnZ2FwLWF3YXJlJywKICAgICAgICAgICBiYXNpc1JhdGlvID0gMC4zLAogICAgICAgICAgIHNlZ21lbnRTaXplID0gNTAwLAogICAgICAgICAgIFJNU0UgPSBUUlVFLAogICAgICAgICAgIHNtb290aGluZ0FnZW50ID0gMC40LAogICAgICAgICAgIG1pc3NpbmdJbnRlcnZhbFNpemUgPSA2MCo1LAogICAgICAgICAgIHBsb3Q9VFJVRSwKICAgICAgICAgICB2YWx1ZUNvbCA9ICdOTzInKQoKCgo=</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiYXV0b3BvbGF0ZSBOb3RlYm9vayIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKSG93IHRvIHVzZSBhdXRvcG9sYXRlIHBhY2thZ2UgOiAKCkZpcnN0IHdlIGludGFsbCB0aGUgcGFja2FnZSBmcm9tIGdpdGh1YiB1c2luZyBkZXZ0b29sczo6aW5zdGFsbF9naXRodWIgOgoKYGBge3J9CiMgRmlyc3Qgd2UgbWFrZSBzdXJlIHRoYXQgZGV2dG9vbHMgaXMgaW5zdGFsbGVkIG9uIHlvdXIgUiBlbnZpcm5vbWVudAppZiAoIXJlcXVpcmUoZGV2dG9vbHMpKSB7CiAgaW5zdGFsbC5wYWNrYWdlcygnZGV2dG9vbHMnKQp9ICAKIyBUaGVuIHdlIGNhbiBpbnN0YWxsIG15IHNjcmlwdCBieSBydW5uaW5nIHRoZSBmb2xsb3dpbmcgY29tbWFuZApkZXZ0b29sczo6aW5zdGFsbF9naXRodWIoJ01vdXN0YXBoYS1BL2F1dG9wb2xhdGUnKQpgYGAKClRoZW4gd2UgbG9hZCB0aGUgbGlicmFyeSBhcyBhbnkgb3RoZXIgbGlicmFyeQoKYGBge3J9CmxpYnJhcnkoYXV0b3BvbGF0ZSkKYGBgCgpXZSByZWFkIHNvbWUgZGF0YSwgQ05CQyBpcyBhbiBleGFtcGxlIGRhdGEgaW5jbHVkZWQgaW4gdGhpcyBwYWNrYWdlIHlvdSBtdXN0IGxvYWQgeW91ciBvd24gZGF0YSBmcmFtZSBoZXJlCgpgYGB7cn0KZGYgPSBkYXRhKENOQkMpCmBgYAoKVGhlIGZpcnN0IHJvd3Mgb2YgdGhlIGRhdGEKCmBgYHtyfQpwcmludChoZWFkKGRmLDEwKSkKYGBgCgpUaGUgY3VycmVudCBkYXRhIHJhdGUgaXMgMSBtaW4gd2Ugd2FudCB0byB0cmFuc2Zvcm0gaXQgaW50byAzMCBzZWNvbmRzIGFuZCBmb3Igb25seSB0aGUgdGVtcHJldHVyZSBhdHRyaWJ1dGUKCmBgYHtyfQppbnRlcnBvbGF0ZWRUZW1wPSBhdXRvcG9sYXRlKGRhdGFmcmFtZSA9IGFzLmRhdGEuZnJhbWUodGVzdCksCiAgICAgICAgICAgICAgICAgIHRpbWVDb2wgPSAnVGltZScsCiAgICAgICAgICAgICAgICAgIHRpbWVGcm10ID0gJyVkLyVtLyVZICVIOiVNOiVTJywKICAgICAgICAgICAgICAgICAgdmFsdWVDb2wgPSAnTk8yJywKICAgICAgICAgICAgICAgICAgcmF0ZSA9IDYwLAogICAgICAgICAgICAgICAgICB0YXJnZXRSYXRlID0gMzApCmBgYAoKVGhlIGZpcnN0IHJvd3Mgb2YgdGhlIGludGVycG9sYXRlZCB0ZW1wcmV0dXJlIHdlIGNhbiBzZWUgdGhlIHJhdGUgaW4gdGhlIFRpbWUgYXR0cmlidXRlCgpgYGB7cn0KCmBgYAoKCgoKCg==</div>
 
 
 

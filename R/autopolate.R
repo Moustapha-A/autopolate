@@ -1,7 +1,7 @@
 devtools::use_package("fda")
 devtools::use_package("data.table")
 
-autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal", segmentSize= NULL, timeRate, basisRatio=0.1, smoothingAgent=0, missingIntervalSize=NULL, plot=FALSE, basis="spline",RMSE=FALSE, rate=60){
+autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal", segmentSize= NULL, targetRate, basisRatio=0.1, smoothingAgent=0, missingIntervalSize=NULL, plot=FALSE, basis="spline",RMSE=FALSE, rate=60){
 
   #todo Validate input
   if( length(segmentSize) >= length(dataframe) ) stop("segment size should be smaller than dataframe lenght")
@@ -80,7 +80,7 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
     }
 
 
-  newX = seq(head(x,1),tail(x,1),timeRate)
+  newX = seq(head(x,1),tail(x,1),targetRate)
 
   newY = c()
   for(v in newX){
@@ -101,7 +101,7 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
   missing = missingIntervals(x,missingIntervalSize)
   missingValues = c()
   for(v in missing){
-    missingValues = c(missingValues,seq(v[1]+timeRate,v[2]-timeRate,timeRate))
+    missingValues = c(missingValues,seq(v[1]+targetRate,v[2]-targetRate,targetRate))
     }
   newDt = newDt[which(newX %in% missingValues),c('newY'):=NA,]
   }

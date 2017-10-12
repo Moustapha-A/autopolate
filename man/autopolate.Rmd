@@ -17,27 +17,41 @@ devtools::install_github('Moustapha-A/autopolate')
 ```
 
 Then we load the library as any other library
+
 ```{r}
 library(autopolate)
 ```
 
+We read some data, CNBC is an example data included in this package you must load your own data frame here
+
+```{r}
+df = data(CNBC)
+```
+
+The first rows of the data
+
+```{r}
+print(head(df,10))
+```
+
+The current data rate is 1 min we want to transform it into 30 seconds and for only the tempreture attribute
+
+```{r}
+interpolatedTemp= autopolate(dataframe = as.data.frame(test),
+                  timeCol = 'Time',
+                  timeFrmt = '%d/%m/%Y %H:%M:%S',
+                  valueCol = 'NO2',
+                  rate = 60,
+                  targetRate = 30)
+```
+
+The first rows of the interpolated tempreture we can see the rate in the Time attribute
+
+```{r}
+
+```
 
 
-test = data.table::fread("/home/qpc/Desktop/CNBC.csv")
-save(test, file="data/CNBC.RData")
-
-w = autopolate(dataframe = as.data.frame(test),
-           timeCol = 'Time',
-           timeFrmt = '%d/%m/%Y %H:%M:%S',
-           timeRate = 30,
-           breaksGen = 'gap-aware',
-           basisRatio = 0.3,
-           segmentSize = 500,
-           RMSE = TRUE,
-           smoothingAgent = 0.4,
-           missingIntervalSize = 60*5,
-           plot=TRUE,
-           valueCol = 'NO2')
 
 
 
