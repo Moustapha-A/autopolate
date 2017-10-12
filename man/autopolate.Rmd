@@ -87,6 +87,7 @@ interpolatedTemp= autopolate(dataframe = CNBC,
                   rate = 60,
                   targetRate = 30,
                   plot= TRUE,
+                  interactive = TRUE,
                   RMSE = TRUE
                   ) 
 ```

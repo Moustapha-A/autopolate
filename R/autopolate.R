@@ -45,8 +45,6 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
     }
     else{
       breaks = gapsBreaks(x,basisRatio,rate)
-      View(data.table::data.table(breaks))
-      View(data.table::data.table(as.numeric(breaks)))
       basis = fda::create.bspline.basis(c( head(x,1), tail(x,1) ), breaks = breaks, norder= 4)
       penalty = fda::fdPar(basis,1,lambda = smoothingAgent)
       s = fda::smooth.basis(x,y,penalty)
