@@ -12,7 +12,7 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
   dt = data.table::data.table(dataframe[,c(timeCol,valueCol),with=FALSE])
   dt = na.omit(dt)
 
-  x = strptime( dt[[timeCol]], timeFrmt )
+  x = as.POSIXct( dt[[timeCol]],format= timeFrmt )
   if(anyNA(x)) stop("There is a problem in the provided time format or ambiguous time entries")
   y = dt[[valueCol]]
 
