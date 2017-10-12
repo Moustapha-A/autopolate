@@ -1,5 +1,6 @@
 devtools::use_package("fda")
 devtools::use_package("data.table")
+.datatable.aware=TRUE
 
 autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal", segmentSize= NULL, targetRate, basisRatio=0.1, smoothingAgent=0, missingIntervalSize=NULL, plot=FALSE, basis="spline",RMSE=FALSE, rate=60){
 
