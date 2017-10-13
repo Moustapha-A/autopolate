@@ -172,7 +172,6 @@ $(document).ready(function () {
 
 
 <!-- rnb-text-begin -->
-<p>First we intall the package from github using devtools::install_github :</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBGaXJzdCB3ZSBtYWtlIHN1cmUgdGhhdCBkZXZ0b29scyBpcyBpbnN0YWxsZWQgb24geW91ciBSIGVudmlybm9tZW50XG5pZiAoIXJlcXVpcmUoZGV2dG9vbHMpKSB7XG4gIGluc3RhbGwucGFja2FnZXMoJ2RldnRvb2xzJylcbn0gIFxuIyBUaGVuIHdlIGNhbiBpbnN0YWxsIG15IHNjcmlwdCBieSBydW5uaW5nIHRoZSBmb2xsb3dpbmcgY29tbWFuZFxuZGV2dG9vbHM6Omluc3RhbGxfZ2l0aHViKCdNb3VzdGFwaGEtQS9hdXRvcG9sYXRlJylcbmBgYCJ9 -->
@@ -185,15 +184,63 @@ devtools::install_github('Moustapha-A/autopolate')</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Then we load the library as any other library</p>
+<p>First we intall the package from github using devtools::install_github</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShhdXRvcG9sYXRlKVxuYGBgIn0= -->
 <pre class="r"><code>library(autopolate)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoicmVzdGFydGluZyBpbnRlcnJ1cHRlZCBwcm9taXNlIGV2YWx1YXRpb25pbnRlcm5hbCBlcnJvciAtMyBpbiBSX2RlY29tcHJlc3MxRXJyb3IgaW4gRlVOKFhbW2ldXSwgLi4uKSA6IFxuICBsYXp5LWxvYWQgZGF0YWJhc2UgJy9ob21lL3FwYy9SL2k2ODYtcGMtbGludXgtZ251LWxpYnJhcnkvMy4zL2F1dG9wb2xhdGUvZGF0YS9SZGF0YS5yZGInIGlzIGNvcnJ1cHRcbiJ9 -->
+<pre><code>restarting interrupted promise evaluationinternal error -3 in R_decompress1Error in FUN(X[[i]], ...) : 
+  lazy-load database '/home/qpc/R/i686-pc-linux-gnu-library/3.3/autopolate/data/Rdata.rdb' is corrupt</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Then we load the library as any other library</p>
+<hr />
+<div id="treating-neat-data" class="section level3">
+<h3><em>Treating Neat Data</em></h3>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YShcIkVaNjhcIilcbkVaNjggPSBuYS5vbWl0KEVaNjgpXG5gYGAifQ== -->
+<pre class="r"><code>data(&quot;EZ68&quot;)
+EZ68 = na.omit(EZ68)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Now we will load some data that belongs to one of polluscope’s campaigns. Using the Ecomzen 68 sensor.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChFWjY4LDEwKVxuYGBgIn0= -->
+<pre class="r"><code>head(EZ68,10)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The first 10 records of EZ68</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdChhcy5QT1NJWGN0KEVaNjgkYERhdGUgKFVUQylgLGZvcm1hdD1cIiVZLSVtLSVkICVIOiVNOiVTXCIpLEVaNjgkTk8yLCBtYWluID0gXCJFY29temVuIE5PMiBUU1wiLCB4bGFiID0gXCJUaW1lXCIsIHlsYWIgPSBcIk5PMlwiKVxuYGBgIn0= -->
+<pre class="r"><code>plot(as.POSIXct(EZ68$`Date (UTC)`,format=&quot;%Y-%m-%d %H:%M:%S&quot;),EZ68$NO2, main = &quot;Ecomzen NO2 TS&quot;, xlab = &quot;Time&quot;, ylab = &quot;NO2&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The plot of NO2 against Time</p>
+<p>We can see that the aquisition rate of Ecomzen is not stable sometimes it is ~1 min other is ~2 min. What we want to do is to have the values at a stable rate. Let us say that we need to have the data as a rate of 30 seconds. We will do that using the <em>autopolate</em> function I developed:</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuTk8yPSBhdXRvcG9sYXRlKGRhdGFmcmFtZSA9IEVaNjgsXG4gICAgICAgICAgICAgICAgICB0aW1lQ29sID0gXCJEYXRlIChVVEMpXCIsXG4gICAgICAgICAgICAgICAgICB0aW1lRnJtdCA9IFwiJVktJW0tJWQgJUg6JU06JVNcIixcbiAgICAgICAgICAgICAgICAgIHZhbHVlQ29sID0gXCJOTzJcIixcbiAgICAgICAgICAgICAgICAgIHRhcmdldFJhdGUgPSAzMClcbmBgYCJ9 -->
+<pre class="r"><code>NO2= autopolate(dataframe = EZ68,
+                  timeCol = &quot;Date (UTC)&quot;,
+                  timeFrmt = &quot;%Y-%m-%d %H:%M:%S&quot;,
+                  valueCol = &quot;NO2&quot;,
+                  targetRate = 30)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+</div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiQXV0byBJbnRlcnBvbGF0aW9uIExpYnJhcnkgRm9yIFIiCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCkZpcnN0IHdlIGludGFsbCB0aGUgcGFja2FnZSBmcm9tIGdpdGh1YiB1c2luZyBkZXZ0b29sczo6aW5zdGFsbF9naXRodWIgOgoKYGBge3J9CiMgRmlyc3Qgd2UgbWFrZSBzdXJlIHRoYXQgZGV2dG9vbHMgaXMgaW5zdGFsbGVkIG9uIHlvdXIgUiBlbnZpcm5vbWVudAppZiAoIXJlcXVpcmUoZGV2dG9vbHMpKSB7CiAgaW5zdGFsbC5wYWNrYWdlcygnZGV2dG9vbHMnKQp9ICAKIyBUaGVuIHdlIGNhbiBpbnN0YWxsIG15IHNjcmlwdCBieSBydW5uaW5nIHRoZSBmb2xsb3dpbmcgY29tbWFuZApkZXZ0b29sczo6aW5zdGFsbF9naXRodWIoJ01vdXN0YXBoYS1BL2F1dG9wb2xhdGUnKQpgYGAKClRoZW4gd2UgbG9hZCB0aGUgbGlicmFyeSBhcyBhbnkgb3RoZXIgbGlicmFyeQoKYGBge3J9CmxpYnJhcnkoYXV0b3BvbGF0ZSkKYGBgCg==</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiQXV0byBJbnRlcnBvbGF0aW9uIExpYnJhcnkgRm9yIFIiCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCmBgYHtyfQojIEZpcnN0IHdlIG1ha2Ugc3VyZSB0aGF0IGRldnRvb2xzIGlzIGluc3RhbGxlZCBvbiB5b3VyIFIgZW52aXJub21lbnQKaWYgKCFyZXF1aXJlKGRldnRvb2xzKSkgewogIGluc3RhbGwucGFja2FnZXMoJ2RldnRvb2xzJykKfSAgCiMgVGhlbiB3ZSBjYW4gaW5zdGFsbCBteSBzY3JpcHQgYnkgcnVubmluZyB0aGUgZm9sbG93aW5nIGNvbW1hbmQKZGV2dG9vbHM6Omluc3RhbGxfZ2l0aHViKCdNb3VzdGFwaGEtQS9hdXRvcG9sYXRlJykKYGBgCkZpcnN0IHdlIGludGFsbCB0aGUgcGFja2FnZSBmcm9tIGdpdGh1YiB1c2luZyBkZXZ0b29sczo6aW5zdGFsbF9naXRodWIKCgpgYGB7cn0KbGlicmFyeShhdXRvcG9sYXRlKQpgYGAKVGhlbiB3ZSBsb2FkIHRoZSBsaWJyYXJ5IGFzIGFueSBvdGhlciBsaWJyYXJ5CgoqKioKCiMjIyAqVHJlYXRpbmcgTmVhdCBEYXRhKgoKYGBge3J9CmRhdGEoIkVaNjgiKQpFWjY4ID0gbmEub21pdChFWjY4KQpgYGAKTm93IHdlIHdpbGwgbG9hZCBzb21lIGRhdGEgdGhhdCBiZWxvbmdzIHRvIG9uZSBvZiBwb2xsdXNjb3BlJ3MgY2FtcGFpZ25zLiBVc2luZyB0aGUgRWNvbXplbiA2OCBzZW5zb3IuCgpgYGB7cn0KaGVhZChFWjY4LDEwKQpgYGAKVGhlIGZpcnN0IDEwIHJlY29yZHMgb2YgRVo2OAoKYGBge3J9CnBsb3QoYXMuUE9TSVhjdChFWjY4JGBEYXRlIChVVEMpYCxmb3JtYXQ9IiVZLSVtLSVkICVIOiVNOiVTIiksRVo2OCROTzIsIG1haW4gPSAiRWNvbXplbiBOTzIgVFMiLCB4bGFiID0gIlRpbWUiLCB5bGFiID0gIk5PMiIpCmBgYApUaGUgcGxvdCBvZiBOTzIgYWdhaW5zdCBUaW1lCgpXZSBjYW4gc2VlIHRoYXQgdGhlIGFxdWlzaXRpb24gcmF0ZSBvZiBFY29temVuIGlzIG5vdCBzdGFibGUgc29tZXRpbWVzIGl0IGlzIH4xIG1pbiBvdGhlciBpcyB+MiBtaW4uIFdoYXQgd2Ugd2FudCB0byBkbyBpcyB0byBoYXZlIHRoZSB2YWx1ZXMgYXQgYSBzdGFibGUgcmF0ZS4gTGV0IHVzIHNheSB0aGF0IHdlIG5lZWQgdG8gaGF2ZSB0aGUgZGF0YSBhcyBhIHJhdGUgb2YgMzAgc2Vjb25kcy4gV2Ugd2lsbCBkbyB0aGF0IHVzaW5nIHRoZSAqYXV0b3BvbGF0ZSogZnVuY3Rpb24gSSBkZXZlbG9wZWQ6CgpgYGB7cn0KTk8yPSBhdXRvcG9sYXRlKGRhdGFmcmFtZSA9IEVaNjgsCiAgICAgICAgICAgICAgICAgIHRpbWVDb2wgPSAiRGF0ZSAoVVRDKSIsCiAgICAgICAgICAgICAgICAgIHRpbWVGcm10ID0gIiVZLSVtLSVkICVIOiVNOiVTIiwKICAgICAgICAgICAgICAgICAgdmFsdWVDb2wgPSAiTk8yIiwKICAgICAgICAgICAgICAgICAgdGFyZ2V0UmF0ZSA9IDMwKQpgYGAKCgo=</div>
 
 
 

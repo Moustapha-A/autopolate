@@ -3,8 +3,6 @@ title: "Auto Interpolation Library For R"
 output: html_notebook
 ---
 
-First we intall the package from github using devtools::install_github :
-
 ```{r}
 # First we make sure that devtools is installed on your R envirnoment
 if (!require(devtools)) {
@@ -13,9 +11,42 @@ if (!require(devtools)) {
 # Then we can install my script by running the following command
 devtools::install_github('Moustapha-A/autopolate')
 ```
+First we intall the package from github using devtools::install_github
 
-Then we load the library as any other library
 
 ```{r}
 library(autopolate)
 ```
+Then we load the library as any other library
+
+***
+
+### *Treating Neat Data*
+
+```{r}
+data("EZ68")
+EZ68 = na.omit(EZ68)
+```
+Now we will load some data that belongs to one of polluscope's campaigns. Using the Ecomzen 68 sensor.
+
+```{r}
+head(EZ68,10)
+```
+The first 10 records of EZ68
+
+```{r}
+plot(as.POSIXct(EZ68$`Date (UTC)`,format="%Y-%m-%d %H:%M:%S"),EZ68$NO2, main = "Ecomzen NO2 TS", xlab = "Time", ylab = "NO2")
+```
+The plot of NO2 against Time
+
+We can see that the aquisition rate of Ecomzen is not stable sometimes it is ~1 min other is ~2 min. What we want to do is to have the values at a stable rate. Let us say that we need to have the data as a rate of 30 seconds. We will do that using the *autopolate* function I developed:
+
+```{r}
+NO2= autopolate(dataframe = EZ68,
+                  timeCol = "Date (UTC)",
+                  timeFrmt = "%Y-%m-%d %H:%M:%S",
+                  valueCol = "NO2",
+                  targetRate = 30)
+```
+
+
