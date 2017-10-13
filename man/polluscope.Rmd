@@ -1,0 +1,21 @@
+---
+title: "Auto Interpolation Library For R"
+output: html_notebook
+---
+
+First we intall the package from github using devtools::install_github :
+
+```{r}
+# First we make sure that devtools is installed on your R envirnoment
+if (!require(devtools)) {
+  install.packages('devtools')
+}  
+# Then we can install my script by running the following command
+devtools::install_github('Moustapha-A/autopolate')
+```
+
+Then we load the library as any other library
+
+```{r}
+library(autopolate)
+```

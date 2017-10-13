@@ -3,7 +3,7 @@ devtools::use_package("data.table")
 devtools::use_package("plotly","Suggests")
 .datatable.aware=TRUE
 
-autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal", segmentSize= NULL, targetRate, basisRatio=0.1, smoothingAgent=0, missingIntervalSize=NULL, plot=FALSE, interactive=FALSE, basis="spline",RMSE=FALSE, rate=60){
+autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal", segmentSize= NULL, targetRate, basisRatio=0.1, smoothingAgent=0, missingIntervalSize=NULL, plot=FALSE, interactive=FALSE, basis="spline",RMSE=FALSE, rate=60, degree=3 , preserveNA=FALSE, residual =FALSE){
 
   #todo Validate input
   if( length(segmentSize) >= length(dataframe) ) stop("segment size should be smaller than dataframe lenght")
@@ -24,29 +24,29 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
       nbSegments = floor(length(x)/segmentSize)
       remainder = length(x) %% segmentSize
 
-      breaks = gapsBreaks(x[1:segmentSize],basisRatio,rate)
-      basis = fda::create.bspline.basis(c(x[1],x[segmentSize]),breaks = breaks, norder = 4)
-      penalty = fda::fdPar(basis,1,lambda = smoothingAgent)
+      breaks = gapsBreaks(x[1:segmentSize],basisRatio,missingIntervalSize)
+      basis = fda::create.bspline.basis(c(x[1],x[segmentSize]),breaks = breaks, norder = degree+1)
+      penalty = fda::fdPar(basis,lambda = smoothingAgent)
       s = fda::smooth.basis(x[1:segmentSize],y[1:segmentSize],penalty)
       fncts[[1]] = s
 
       for( i in 2:nbSegments){
-        breaks = gapsBreaks(x[((i-1)*segmentSize):(segmentSize*i)],basisRatio, rate)
-        basis = fda::create.bspline.basis(c(x[(i-1)*segmentSize],x[segmentSize*i]),breaks = breaks, norder = 4)
-        penalty = fda::fdPar(basis,1,lambda = smoothingAgent)
+        breaks = gapsBreaks(x[((i-1)*segmentSize):(segmentSize*i)],basisRatio, missingIntervalSize)
+        basis = fda::create.bspline.basis(c(x[(i-1)*segmentSize],x[segmentSize*i]),breaks = breaks, norder = degree+1)
+        penalty = fda::fdPar(basis,lambda = smoothingAgent)
         s = fda::smooth.basis(x[((i-1)*segmentSize):(segmentSize*i)],y[((i-1)*segmentSize):(segmentSize*i)],penalty)
         fncts[[i]] = s
       }
-      breaks = gapsBreaks(x[(nbSegments*segmentSize):(nbSegments*segmentSize+remainder)], basisRatio, rate)
-      basis = fda::create.bspline.basis(c(x[nbSegments*segmentSize],x[nbSegments*segmentSize+remainder]),breaks = breaks, norder = 4)
-      penalty = fda::fdPar(basis,1,lambda = smoothingAgent)
+      breaks = gapsBreaks(x[(nbSegments*segmentSize):(nbSegments*segmentSize+remainder)], basisRatio, missingIntervalSize)
+      basis = fda::create.bspline.basis(c(x[nbSegments*segmentSize],x[nbSegments*segmentSize+remainder]),breaks = breaks, norder = degree+1)
+      penalty = fda::fdPar(basis,lambda = smoothingAgent)
       s = fda::smooth.basis(x[(nbSegments*segmentSize):(nbSegments*segmentSize+remainder)],y[(nbSegments*segmentSize):(nbSegments*segmentSize+remainder)],penalty)
       fncts[[nbSegments+1]]=s
     }
     else{
-      breaks = gapsBreaks(x,basisRatio,rate)
-      basis = fda::create.bspline.basis(c( head(x,1), tail(x,1) ), breaks = breaks, norder= 4)
-      penalty = fda::fdPar(basis,1,lambda = smoothingAgent)
+      breaks = gapsBreaks(x,basisRatio,missingIntervalSize)
+      basis = fda::create.bspline.basis(c( head(x,1), tail(x,1) ), breaks = breaks, norder= degree+1)
+      penalty = fda::fdPar(basis,lambda = smoothingAgent)
       s = fda::smooth.basis(x,y,penalty)
       fncts[[1]] = s
     }
@@ -57,31 +57,63 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
     nbSegments = floor(length(x)/segmentSize)
     remainder = length(x) %% segmentSize
 
-    basis = fda::create.bspline.basis(c(x[1],x[segmentSize]),nbasis =ceiling(segmentSize*basisRatio), norder = 4)
-    penalty = fda::fdPar(basis,1,lambda = smoothingAgent)
+    basis = fda::create.bspline.basis(c(x[1],x[segmentSize]),nbasis =ceiling(segmentSize*basisRatio), norder = degree+1)
+    penalty = fda::fdPar(basis,lambda = smoothingAgent)
     s = fda::smooth.basis(x[1:segmentSize],y[1:segmentSize],penalty)
     fncts[[1]] = s
 
     for( i in 2:nbSegments){
-      basis = fda::create.bspline.basis(c(x[(i-1)*segmentSize],x[segmentSize*i]),nbasis =ceiling(segmentSize*basisRatio), norder = 4)
-      penalty = fda::fdPar(basis,1,lambda = smoothingAgent)
+      basis = fda::create.bspline.basis(c(x[(i-1)*segmentSize],x[segmentSize*i]),nbasis =ceiling(segmentSize*basisRatio), norder = degree+1)
+      penalty = fda::fdPar(basis,lambda = smoothingAgent)
       s = fda::smooth.basis(x[((i-1)*segmentSize):(segmentSize*i)],y[((i-1)*segmentSize):(segmentSize*i)],penalty)
       fncts[[i]] = s
     }
 
-    basis = fda::create.bspline.basis(c(x[nbSegments*segmentSize],x[nbSegments*segmentSize+remainder]),nbasis =ceiling(remainder*basisRatio), norder = 4)
-    penalty = fda::fdPar(basis,1,lambda = smoothingAgent)
+    basis = fda::create.bspline.basis(c(x[nbSegments*segmentSize],x[nbSegments*segmentSize+remainder]),nbasis =ceiling(remainder*basisRatio), norder = degree+1)
+    penalty = fda::fdPar(basis,lambda = smoothingAgent)
     s = fda::smooth.basis(x[(nbSegments*segmentSize):(nbSegments*segmentSize+remainder)],y[(nbSegments*segmentSize):(nbSegments*segmentSize+remainder)],penalty)
     fncts[[nbSegments+1]]=s
   }
   else{
-    basis = fda::create.bspline.basis(c( head(x,1), tail(x,1) ), nbasis = ceiling( basisRatio*length(x) ), norder= 4)
-    penalty = fda::fdPar(basis,1,lambda = smoothingAgent)
+    basis = fda::create.bspline.basis(c( head(x,1), tail(x,1) ), nbasis = ceiling( basisRatio*length(x) ), norder= degree+1)
+    penalty = fda::fdPar(basis,lambda = smoothingAgent)
     s = fda::smooth.basis(x,y,penalty)
     fncts[[1]] = s
     }
-    }
+  }
 
+  if(breaksGen=='gap-aware-linear'){
+    if(!is.null(segmentSize) ){
+      nbSegments = floor(length(x)/segmentSize)
+      remainder = length(x) %% segmentSize
+
+      breaks = gapsBreaksLinear(x[1:segmentSize],basisRatio,missingIntervalSize, degree)
+      basis = fda::create.bspline.basis(c(x[1],x[segmentSize]),breaks = breaks, norder = degree+1)
+      penalty = fda::fdPar(basis,lambda = smoothingAgent)
+      s = fda::smooth.basis(x[1:segmentSize],y[1:segmentSize],penalty)
+      fncts[[1]] = s
+
+      for( i in 2:nbSegments){
+        breaks = gapsBreaksLinear(x[((i-1)*segmentSize):(segmentSize*i)],basisRatio, missingIntervalSize, degree)
+        basis = fda::create.bspline.basis(c(x[(i-1)*segmentSize],x[segmentSize*i]),breaks = breaks, norder = degree+1)
+        penalty = fda::fdPar(basis,lambda = smoothingAgent)
+        s = fda::smooth.basis(x[((i-1)*segmentSize):(segmentSize*i)],y[((i-1)*segmentSize):(segmentSize*i)],penalty)
+        fncts[[i]] = s
+      }
+      breaks = gapsBreaksLinear(x[(nbSegments*segmentSize):(nbSegments*segmentSize+remainder)], basisRatio, missingIntervalSize,degree)
+      basis = fda::create.bspline.basis(c(x[nbSegments*segmentSize],x[nbSegments*segmentSize+remainder]),breaks = breaks, norder = degree+1)
+      penalty = fda::fdPar(basis,lambda = smoothingAgent)
+      s = fda::smooth.basis(x[(nbSegments*segmentSize):(nbSegments*segmentSize+remainder)],y[(nbSegments*segmentSize):(nbSegments*segmentSize+remainder)],penalty)
+      fncts[[nbSegments+1]]=s
+    }
+    else{
+      breaks = gapsBreaksLinear(x,basisRatio,missingIntervalSize,degree)
+      basis = fda::create.bspline.basis(c( head(x,1), tail(x,1) ), breaks = breaks, norder= degree+1)
+      penalty = fda::fdPar(basis,lambda = smoothingAgent)
+      s = fda::smooth.basis(x,y,penalty)
+      fncts[[1]] = s
+    }
+  }
 
   newX = seq(head(x,1),tail(x,1),targetRate)
 
@@ -101,7 +133,7 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
   newDt = data.table::data.table(newX,newY)
   names(newDt) = c(timeCol,valueCol)
 
-  if( !is.null(missingIntervalSize) ){
+  if( isTRUE(preserveNA) ){
   missing = missingIntervals(x,missingIntervalSize)
   missingValues = c()
   for(v in missing){
@@ -113,11 +145,12 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
   if(isTRUE(plot)){
     if(isTRUE(interactive)){
       if (!requireNamespace("plotly", quietly = TRUE)) {stop("plotly needed for interactive plotting to work. Please install it.", call. = FALSE)}
-      plotly::plot_ly(x=x,y=y,color = rgb(0,0.2,1,0.8), type='scatter', mode='line')
+      p = plotly::plot_ly(x=x,y=y, type='scatter', mode='markers', color = "rgba(0,0,255,0.8)")
       for(fnct in fncts){
         denseInterval = seq(head(fnct$argvals,1),tail(fnct$argvals,1),10)
-        plotly::add_lines(x=denseInterval,y=fda::eval.fd(denseInterval,fnct$fd))
+        p= plotly::add_lines(p,x=denseInterval,y=fda::eval.fd(denseInterval,fnct$fd), type='scatter', mode='lines', color="rgb(0,0,0)")
       }
+      print(p)
     }
     else{
       plot(x,y,col=rgb(0,0.1,1,0.8) , main = "Initial Vs Interpolated", xlab = timeCol, ylab = valueCol)
@@ -143,6 +176,23 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
     print(msg)
   }
 
+  if(isTRUE(residual)){
+    residuals = c()
+    for(fnct in fncts){
+      residualPart = fnct$y - fda::eval.fd(fnct$argvals,fnct$fd)
+      residuals = c(residuals,residualPart)
+    }
+    if(isTRUE(interactive)){
+      p= plot_ly(x=x,y=residuals, type='scatter', mode='lines')
+      print(p)
+    }
+
+    else{
+      plot(x,residuals,col=rgb(0,0,0))
+    }
+
+  }
+
   return( as.data.frame(newDt) )
 }
 
@@ -158,6 +208,13 @@ missingIntervals = function(x,threshold){
     }
   }
   return(intervals)
+}
+
+breaksGenerator =  function(type,x,...){
+  switch(type,
+         "normal" = normalBreaks(x,...),
+         "gap-aware" = gapsBreaks(x,...),
+         "gap-aware-linear" = gapsBreaksLinear(x,...))
 }
 
 variationBreaks = function(x,y){
@@ -182,8 +239,8 @@ thresholdBreaks = function(x,y,sthreshold,lthreshold){
 
 }
 
-gapsBreaks = function(x, basisRatio, rate ){
-  missing = missingIntervals(x,rate)
+gapsBreaks = function(x, basisRatio, missingIntervalSize ){
+  missing = missingIntervals(x,missingIntervalSize)
   #breaks = seq(head(x,1),tail(x,1),(tail(x,1)-head(x,1))/(as.double(tail(x,1)-head(x,1),units = 'secs')*basisRatio))
   breaks = seq(head(x,1),tail(x,1),length.out = length(x)*basisRatio )
   for(interval in missing){
@@ -192,4 +249,18 @@ gapsBreaks = function(x, basisRatio, rate ){
   return(breaks)
 }
 
+gapsBreaksLinear = function(x, basisRatio, missingIntervalSize, degree){
+  missing = missingIntervals(x,missingIntervalSize)
+  #breaks = seq(head(x,1),tail(x,1),(tail(x,1)-head(x,1))/(as.double(tail(x,1)-head(x,1),units = 'secs')*basisRatio))
+  breaks = seq(head(x,1),tail(x,1),length.out = length(x)*basisRatio )
+  for(interval in missing){
+    breaks = c( breaks[breaks<=interval[1]], rep(interval[1],degree), rep(interval[2],degree), breaks[breaks>=interval[2]])
+  }
+  return(breaks)
+}
 
+normalBreaks = function(x, basisRatio, degree){
+  nknots = (length(x)*basisRatio) - degree +1
+  breaks = seq(head(x,1),tail(x,1), length.out = nknots)
+  return(breaks)
+}

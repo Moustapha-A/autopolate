@@ -1,0 +1,6 @@
+EZ66 <- data.table::fread('data-raw/EZ66-20170920-20170922.csv')
+EZ67 <- data.table::fread('data-raw/EZ67-20170920-20170922.csv')
+EZ68 <- data.table::fread('data-raw/EZ68-20170920-20170922.csv')
+devtools::use_data(EZ66, overwrite = TRUE)
+devtools::use_data(EZ67, overwrite = TRUE)
+devtools::use_data(EZ68, overwrite = TRUE)
