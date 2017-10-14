@@ -3,7 +3,7 @@ devtools::use_package("data.table")
 devtools::use_package("plotly","Suggests")
 .datatable.aware=TRUE
 
-autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal", segmentSize= NULL, targetRate, basisRatio=0.1, smoothingAgent=0, missingIntervalSize=NULL, plot=FALSE, interactive=FALSE, basis="spline",RMSE=FALSE, rate=60, degree=3 , preserveNA=FALSE, residual =FALSE){
+autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal", segmentSize= NULL, targetRate, basisRatio=0.15, smoothingAgent=0, missingIntervalSize=NULL, plot=FALSE, interactive=FALSE, basis="spline",RMSE=FALSE, degree=3 , preserveNA=FALSE, residual =FALSE){
 
   #todo Validate input
   if( length(segmentSize) >= length(dataframe) ) stop("segment size should be smaller than dataframe lenght")
@@ -145,10 +145,11 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
   if(isTRUE(plot)){
     if(isTRUE(interactive)){
       if (!requireNamespace("plotly", quietly = TRUE)) {stop("plotly needed for interactive plotting to work. Please install it.", call. = FALSE)}
-      p = plotly::plot_ly(x=x,y=y, type='scatter', mode='markers', color = "rgba(0,0,255,0.8)")
+      p = plotly::plot_ly(x=x, y=y, type='scatter', name="Initial Data",  mode="markers", color=I("red"),alpha = 0.67)
       for(fnct in fncts){
         denseInterval = seq(head(fnct$argvals,1),tail(fnct$argvals,1),10)
-        p= plotly::add_lines(p,x=denseInterval,y=fda::eval.fd(denseInterval,fnct$fd), type='scatter', mode='lines', color="rgb(0,0,0)")
+        response =as.numeric(fda::eval.fd(denseInterval,fnct$fd))
+        p = plotly::add_trace(p,x=denseInterval,y=response,type="scatter", name="Interpolated curve(s)", mode="lines", color=I("black"), alpha= 1)
       }
       print(p)
     }
@@ -183,14 +184,12 @@ autopolate = function(dataframe, timeCol, timeFrmt, valueCol, breaksGen="normal"
       residuals = c(residuals,residualPart)
     }
     if(isTRUE(interactive)){
-      p= plot_ly(x=x,y=residuals, type='scatter', mode='lines')
-      print(p)
+      print(plotly::plot_ly(x=x,y=residuals, type='scatter', mode='lines'))
     }
 
     else{
-      plot(x,residuals,col=rgb(0,0,0))
+      plot(x,residuals,col=rgb(0,0,0),type = 'l')
     }
-
   }
 
   return( as.data.frame(newDt) )

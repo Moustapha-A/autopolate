@@ -1,6 +1,8 @@
 ---
 title: "Auto Interpolation Library For R"
-output: html_notebook
+output:
+  html_document: default
+  html_notebook: default
 ---
 
 ```{r}
@@ -35,18 +37,67 @@ head(EZ68,10)
 The first 10 records of EZ68
 
 ```{r}
-plot(as.POSIXct(EZ68$`Date (UTC)`,format="%Y-%m-%d %H:%M:%S"),EZ68$NO2, main = "Ecomzen NO2 TS", xlab = "Time", ylab = "NO2")
+plot(as.POSIXct(EZ68$`Date (UTC)`,format="%Y-%m-%d %H:%M:%S"),EZ68$NO2, main = "Ecomzen 68 NO2 TS", xlab = "Time", ylab = "NO2")
 ```
 The plot of NO2 against Time
 
 We can see that the aquisition rate of Ecomzen is not stable sometimes it is ~1 min other is ~2 min. What we want to do is to have the values at a stable rate. Let us say that we need to have the data as a rate of 30 seconds. We will do that using the *autopolate* function I developed:
 
 ```{r}
-NO2= autopolate(dataframe = EZ68,
+NO2_ts= autopolate(dataframe = EZ68,
                   timeCol = "Date (UTC)",
                   timeFrmt = "%Y-%m-%d %H:%M:%S",
                   valueCol = "NO2",
                   targetRate = 30)
 ```
 
+```{r}
+head(NO2_ts,10)
+```
 
+```{r}
+plot(NO2_ts$`Date (UTC)`,NO2_ts$NO2, main = "Treated Ecomzen 68 NO2 TS", xlab = "Time", ylab = "NO2")
+```
+
+However it is alwayse preferable to check the quality of the data interpolation before using and considering it. That is why I added some metrics to be included in the interpolation process. Those metrics are *The Root Mean Squared Error (RMSE)*, the plot of the initial data against the interpolated curves, and the plot of the residuals. Those can be used by adding *plot=TRUE* , *residuals=TRUE* and *RMSE=TRUE*.
+
+```{r}
+NO2_ts= autopolate(dataframe = EZ68,
+                  timeCol = "Date (UTC)",
+                  timeFrmt = "%Y-%m-%d %H:%M:%S",
+                  valueCol = "NO2",
+                  targetRate = 30,
+                  plot=TRUE,
+                  residual = TRUE,
+                  RMSE = TRUE)
+```
+
+```{r}
+NO2_ts= autopolate(dataframe = EZ68,
+                  timeCol = "Date (UTC)",
+                  timeFrmt = "%Y-%m-%d %H:%M:%S",
+                  valueCol = "NO2",
+                  targetRate = 30,
+                  plot=TRUE,
+                  residual = TRUE,
+                  interactive = TRUE,
+                  RMSE = TRUE)
+```
+
+The data scientist can alwayse add the *interactive=TRUE* argument to have interactive plots. However this requires the plotly package to be installed.
+
+
+```{r}
+NO2_ts= autopolate(dataframe = EZ68,
+                  timeCol = "Date (UTC)",
+                  timeFrmt = "%Y-%m-%d %H:%M:%S",
+                  valueCol = "NO2",
+                  targetRate = 30,
+                  basisRatio = 0.5,
+                  plot=TRUE,
+                  residual = TRUE,
+                  interactive = TRUE,
+                  RMSE = TRUE)
+```
+
+To achieve more fitting to data the user can use the *basisRatio* argument to increase the number of basis functions. If it is not specified it is default is 0.1 . Which means 0.1 of the initial data in our case we have 441 data records so the default number of basis function is 0.1\*441 = 45 basis functions. In the above example we used a basisRatio=0.5 i.e. 0.5\*441 = 221 basis function. we can see the difference in the average RMSE beteen interpolating using 45 and 221 basis functions. 
