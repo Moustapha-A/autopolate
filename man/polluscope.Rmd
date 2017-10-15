@@ -1,8 +1,8 @@
 ---
 title: "Auto Interpolation Library For R"
 output:
-  html_document: default
   html_notebook: default
+  html_document: default
 ---
 
 ```{r}
@@ -13,7 +13,7 @@ if (!require(devtools)) {
 # Then we can install my script by running the following command
 devtools::install_github('Moustapha-A/autopolate')
 ```
-First we intall the package from github using devtools::install_github
+First we install the package from git-hub using devtools::install_github
 
 
 ```{r}
@@ -23,7 +23,7 @@ Then we load the library as any other library
 
 ***
 
-### *Treating Neat Data*
+## Treating Neat Data
 
 ```{r}
 data("EZ68")
@@ -41,7 +41,7 @@ plot(as.POSIXct(EZ68$`Date (UTC)`,format="%Y-%m-%d %H:%M:%S"),EZ68$NO2, main = "
 ```
 The plot of NO2 against Time
 
-We can see that the aquisition rate of Ecomzen is not stable sometimes it is ~1 min other is ~2 min. What we want to do is to have the values at a stable rate. Let us say that we need to have the data as a rate of 30 seconds. We will do that using the *autopolate* function I developed:
+We can see that the acquisition rate of Ecomzen is not stable sometimes it is ~1 min other is ~2 min. What we want to do is to have the values at a stable rate. Let us say that we need to have the data as a rate of 30 seconds. We will do that using the *autopolate* function I developed:
 
 ```{r}
 NO2_ts= autopolate(dataframe = EZ68,
@@ -59,7 +59,7 @@ head(NO2_ts,10)
 plot(NO2_ts$`Date (UTC)`,NO2_ts$NO2, main = "Treated Ecomzen 68 NO2 TS", xlab = "Time", ylab = "NO2")
 ```
 
-However it is alwayse preferable to check the quality of the data interpolation before using and considering it. That is why I added some metrics to be included in the interpolation process. Those metrics are *The Root Mean Squared Error (RMSE)*, the plot of the initial data against the interpolated curves, and the plot of the residuals. Those can be used by adding *plot=TRUE* , *residuals=TRUE* and *RMSE=TRUE*.
+However it is always preferable to check the quality of the data interpolation before using and considering it. That is why I added some metrics to be included in the interpolation process. Those metrics are *The Root Mean Squared Error (RMSE)* $\sqrt{\sum_{i=0}^{i=n}{\frac{(\hat{y_i} - yi)^2}{n}}} $, the plot of the initial data against the interpolated curves, and the plot of the residuals. Those can be used by adding *plot=TRUE* , *residuals=TRUE* and *RMSE=TRUE*.
 
 ```{r}
 NO2_ts= autopolate(dataframe = EZ68,
@@ -84,7 +84,7 @@ NO2_ts= autopolate(dataframe = EZ68,
                   RMSE = TRUE)
 ```
 
-The data scientist can alwayse add the *interactive=TRUE* argument to have interactive plots. However this requires the plotly package to be installed.
+The data scientist can always add the *interactive=TRUE* argument to have interactive plots. However this requires the plotly package to be installed.
 
 
 ```{r}
@@ -100,4 +100,119 @@ NO2_ts= autopolate(dataframe = EZ68,
                   RMSE = TRUE)
 ```
 
-To achieve more fitting to data the user can use the *basisRatio* argument to increase the number of basis functions. If it is not specified it is default is 0.1 . Which means 0.1 of the initial data in our case we have 441 data records so the default number of basis function is 0.1\*441 = 45 basis functions. In the above example we used a basisRatio=0.5 i.e. 0.5\*441 = 221 basis function. we can see the difference in the average RMSE beteen interpolating using 45 and 221 basis functions. 
+To achieve more fitting to data the user can use the *basisRatio* argument to increase the number of basis functions. If it is not specified it is default is 0.1 . Which means 0.1 of the initial data in our case we have 441 data records so the default number of basis function is 0.1\*441 = 45 basis functions. In the above example we used a basisRatio=0.5 i.e. 0.5\*441 = 221 basis function. we can see the difference in the average RMSE between interpolating using 45 and 221 basis functions. 
+
+## Treating Noisy Data
+
+Sometimes data is too noisy. I added *smoothingAgent* argument to deal with that.
+
+```{r}
+data("cairsens46")
+plot(as.POSIXct(cairsens46$Time,format="%d/%m/%Y %H:%M:%S"),cairsens46$NO2, main = " Cairsens 46 NO2 TS", xlab = "Time", ylab = "NO2")
+```
+
+We load some noisy data from the polluscopes campaigns held using the Cairsens Sensor. We can see how much the nitrogen dioxide time series is noisy.  
+
+
+```{r}
+cairsens_NO2_ts = autopolate(
+                  dataframe = cairsens46,
+                  timeCol = "Time",
+                  timeFrmt = "%d/%m/%Y %H:%M:%S",
+                  valueCol = "NO2",
+                  targetRate = 30,
+                  basisRatio = 0.6,
+                  plot=TRUE,
+                  residual = TRUE,
+                  interactive = TRUE,
+                  RMSE = TRUE)
+```
+This is the interpolation using 1441\*0.6 = 865 basis functions. We see that the RMSE is small. But sometimes we don't like this behavior of the interpolated curves we want to decrease this fluctuations. To achieve that we can decrease the number of basis functions. Using the *basisRatio* argument 
+
+```{r}
+cairsens_NO2_ts = autopolate(
+                  dataframe = cairsens46,
+                  timeCol = "Time",
+                  timeFrmt = "%d/%m/%Y %H:%M:%S",
+                  valueCol = "NO2",
+                  targetRate = 30,
+                  basisRatio = 0.015,
+                  plot=TRUE,
+                  residual = TRUE,
+                  interactive = TRUE,
+                  RMSE = TRUE)
+```
+This interpolation might be better (Not always, for example if we want to compute the quality of a sensor we want to preserve the original data features). Here we are only using 1441\*0.015 = 22 basis functions. 
+
+##Treating data with considerable missing values
+
+```{r}
+data("EZ67")
+head(EZ67,10)
+```
+Here we load one of polluscope's datasets from Ecomzen 67 sensor.
+
+```{r}
+plot(as.POSIXct(EZ67$`Date (UTC)`,format="%Y-%m-%d %H:%M:%S"),EZ67$O3, main = "Ecomzen 67 Ozon TS", xlab = "Time", ylab = "O3")
+```
+
+```{r}
+EZ67 = EZ67[-seq(285,300),]
+plot(as.POSIXct(EZ67$`Date (UTC)`,format="%Y-%m-%d %H:%M:%S"),EZ67$O3, main = "Ecomzen 67 Ozon TS with a data gap", xlab = "Time", ylab = "O3")
+```
+
+We removed 25 record from EZ67 to siulate a considerable consecutive missing records
+
+```{r}
+BC_ts = autopolate(
+                  dataframe = EZ67,
+                  timeCol = "Date (UTC)",
+                  timeFrmt = "%Y-%m-%d %H:%M:%S",
+                  valueCol = "O3",
+                  targetRate = 30,
+                  basisRatio = 0.1,
+                  plot=TRUE,
+                  residual = TRUE,
+                  interactive = TRUE,
+                  RMSE = TRUE)
+```
+We can see this large peak behavior of the fitted curved while encoutering missing data. To solve this we introduced the *breaksGen* argument to try to solve this problem. BreaksGen is an argment that takes a string so far: "gap-aware" . This argument specifies how the breaks should be placed to avoid this type of problems.
+
+
+```{r}
+BC_ts = autopolate(
+                  dataframe = EZ67,
+                  timeCol = "Date (UTC)",
+                  timeFrmt = "%Y-%m-%d %H:%M:%S",
+                  valueCol = "O3",
+                  targetRate = 30,
+                  basisRatio = 0.1,
+                  breaksGen = "gap-aware",
+                  missingIntervalSize = 3*60,
+                  plot=TRUE,
+                  residual = TRUE,
+                  interactive = TRUE,
+                  RMSE = TRUE)
+```
+We can see that the bad behavior is resolved. One more thing is that the user might be intrested in preserving the NA values even after interpolation. For example the user want to calculate the quality of the sensor; in this case although the user want to interpolate the sensor data, he also wants to preserve NA which reflects a sensor quality. To do that the user should use the argument *preserveNA=TRUE* wile also providing the missing interval size . The missing interval size specifies the space between two consecutive records to be considerd a NA record. In other words it means to I want to preserve all NA or only large consecutive NA values. Although The curves will sit fit iver NA records, the NA will be preserved in the returned dataframe of the function. 
+
+```{r}
+BC_ts = autopolate(
+                  dataframe = EZ67,
+                  timeCol = "Date (UTC)",
+                  timeFrmt = "%Y-%m-%d %H:%M:%S",
+                  valueCol = "O3",
+                  targetRate = 30,
+                  basisRatio = 0.1,
+                  breaksGen = "gap-aware",
+                  missingIntervalSize = 3*60,
+                  preserveNA = TRUE,
+                  plot=TRUE,
+                  residual = TRUE,
+                  interactive = TRUE,
+                  RMSE = TRUE)
+```
+
+```{r}
+plot(BC_ts$`Date (UTC)`,BC_ts$O3, main = "The interpolated data with 30s rate and with NA preserved", xlab = "Time", ylab = "O3")
+```
